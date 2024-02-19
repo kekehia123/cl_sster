@@ -1,0 +1,28 @@
+name: base
+channels:
+  - defaults
+dependencies:
+  - _anaconda_depends
+  - python=3.11.4
+  - setuptools
+  - pip
+  - wheel
+  - anaconda-catalogs
+  - anaconda-client
+  - anaconda-project
+  - anaconda-navigator
+  - conda
+  - conda-build
+  - conda-content-trust
+  - conda-libmamba-solver
+  - conda-pack
+  - conda-package-handling
+  - conda-package-streaming
+  - conda-token
+  - conda-verify
+  - menuinst
+  - console_shortcut
+  - pip:
+      - mne==1.5.1
+      - mat73==0.62
+prefix: C:\Users\Windows\anaconda3
