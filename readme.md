@@ -48,10 +48,10 @@ The `cl_sster` class encapsulates the functionality for contrastive learning wit
 
 ### Parameters
 
-- `n_folds`: int (default: 10) - Number of folds for cross-validation.
+- `n_folds`: int (default: 10) - Number of folds for cross-validation. If 1, the model will be trained with all data. Default: 10
 - `timeLen`: int (default: 30) - The duration of one sample in seconds.
 - `weight_decay`: float (default: 0.1) - Weight decay factor for contrastive learning.
-- `epochs_pretrain`: int (default: 50) - Number of pretraining epochs.
+- `epochs_pretrain`: int (default: 50) - The training epochs in contrastive learning.
 - `timeFilterLen`: int (default: 30) - Length of temporal filters.
 - `avgPoolLen`: int (default: 15) - Kernel size for average pooling.
 - `device`: str (default: 'cuda') - Specifies the device for computation ('cuda' for GPU). Note: the cpu version has not been tested.
@@ -68,7 +68,7 @@ The `cl_sster` class encapsulates the functionality for contrastive learning wit
 
 #### `load_data`
 
-Loads the EEG data and prepares it for model training.
+Load the EEG data and define the number of samples in each trial for contrastive learning.
 
 - **Parameters**:
   - `data`: array-like of shape `(n_subjects, n_timepoints, n_channels)` - The input EEG data.
@@ -82,9 +82,9 @@ Trains the contrastive learning model using the loaded data. Save the trained pa
 
 - **Parameters**: None.
 - **Returns**:
-  - The object itself, updated with training outcomes.
+  - The object itself.
 
-### `get_hidden`
+#### `get_hidden`
 
 Extracts hidden representations from the trained model.
 
@@ -95,7 +95,7 @@ Extracts hidden representations from the trained model.
   - `out`: array-like of shape `(n_subjects, n_latent_dimensions, n_timepoints_latent)` - The hidden representations of the data.
   - `n_points_cum`: array-like of shape `(n_trials,)` - The cumulative sum of the number of points for each trial in the latent space, adjusted for the time filter length and average pooling.
 
-### `get_hidden_psd`
+#### `get_hidden_psd`
 
 Calculates the power spectral density (PSD) of the hidden representations.
 
@@ -106,7 +106,7 @@ Calculates the power spectral density (PSD) of the hidden representations.
 - **Returns**:
   - `psd`: array-like of shape `(n_subjects, n_selected_dimensions, n_trials)` - The PSD of the selected dimensions of the hidden representations for each trial.
 
-### `calc_psd`
+#### `calc_psd`
 
 Calculates the power spectral density of a signal.
 
@@ -115,7 +115,7 @@ Calculates the power spectral density of a signal.
 - **Returns**:
   - `psd`: float - The average power spectral density of the signal within the frequency range of interest (0.5 Hz to 40 Hz).
 
-### `get_hidden_nopool`
+#### `get_hidden_nopool`
 
 Gets the hidden representations without applying average pooling.
 
@@ -127,25 +127,23 @@ Gets the hidden representations without applying average pooling.
   - `out`: array-like of shape `(n_subjects, n_latent_dimensions, n_timepoints_latent)` - The hidden representations without average pooling.
   - `n_points_cum`: array-like of shape `(n_trials,)` - The cumulative sum of the number of points for each trial in the latent space, adjusted for the time filter length.
 
-### `check_nonzero_dims`
+#### `check_nonzero_dims`
 
 Checks and returns the dimensions with non-zero variance across all trials and subjects.
 
-- **Parameters**:
-  - `self`: object.
+- **Parameters**: None.
 - **Returns**:
-  - `nonzero_dims`: Array-like of shape `(n_nonzero_dimensions)` - Indices of the dimensions with non-zero variance.
+  - `nonzero_dims`: Array-like of shape `(n_nonzero_dimensions,)` - Indices of the dimensions with non-zero variance.
 
-### `calc_out_corr_dims`
+#### `calc_out_corr_dims`
 
 Calculates the correlation between dimensions of the output representations.
 
-- **Parameters**:
-  - `self`: object.
+- **Parameters**: None
 - **Returns**:
   - `out_corr_dims_mean`: array-like of shape `(n_nonzero_dimensions, n_nonzero_dimensions)` - The mean correlation matrix across subjects and trials.
 
-### `get_correspond_dims`
+#### `get_correspond_dims`
 
 Finds corresponding dimensions in the hidden representations of cross-validation model that match specified dimensions in the hidden representations of the model trained on all data based on correlation.
 
@@ -159,18 +157,18 @@ Finds corresponding dimensions in the hidden representations of cross-validation
   - `correspondDims_fold`: array-like of shape `(n_folds, n_selected_dimensions)` - The corresponding dimensions found in each fold.
   - `corr_mean_fold`: array-like of shape `(n_folds, n_selected_dimensions)` - The mean correlation of the corresponding dimensions across folds.
 
-### `get_correspond_dims_memEffi`
+#### `get_correspond_dims_memEffi`
 
 A memory-efficient version of `get_correspond_dims`.
 
 - **Parameters**:
   - `n_folds`: int - Number of folds in cross-validation.
-  - `out_sel`: aarray-like of shape `(n_subjects, n_selected_dimensions, n_timepoints_latent)` - A subset of the hidden representations for finding corresponding dimensions.
+  - `out_sel`: array-like of shape `(n_subjects, n_selected_dimensions, n_timepoints_latent)` - A subset of the hidden representations for finding corresponding dimensions.
   - `isNorm`: bool (default: False) - Determines whether to normalize the hidden representations before finding corresponding dimensions.
   - `isPool`: bool (default: True) - Indicates whether the hidden representations were obtained with pooling.
 - **Returns**:
-  - correspondDims_fold: array-like of shape `(n_folds, n_selected_dimensions)` - The corresponding dimensions found in each fold.
-  - corr_mean_fold: array-like of shape `(n_folds, n_selected_dimensions)` - The mean correlation of the corresponding dimensions across folds.
+  - `correspondDims_fold`: array-like of shape `(n_folds, n_selected_dimensions)` - The corresponding dimensions found in each fold.
+  - `corr_mean_fold`: array-like of shape `(n_folds, n_selected_dimensions)` - The mean correlation of the corresponding dimensions across folds.
 
 
 
