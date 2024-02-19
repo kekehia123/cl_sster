@@ -2,13 +2,13 @@
 
 ## Introduction
 
-CL-SSTER aligns the neural representations from different subjects by minimizing the discrepancy of neural representations when the subjects receive the same stimuli. It regards a pair of samples from two different subjects when they receive the same stimuli as the positive sample pair, and samples corresponding to different stimuli as negative sample pairs.
+This repo is an official implementation of the method Contrastive Learning for Shared Spatiotemporal EEG Representations (CL-SSTER). 
 
-This implementation focuses on reproduction of the paper "Contrastive Learning of Shared Spatiotemporal EEG Representations Across Individuals for Naturalistic Neuroscience." It demonstrates how contrastive learning can be leveraged to align neural representations from different subjects, facilitating a more generalized understanding of neural responses to stimuli.
+CL-SSTER utilizes a neural network to maximize the similarity of EEG representations across individuals for identical stimuli, contrasting with those for varied stimuli. The network employed spatial and temporal convolutions to simultaneously learn the spatial and temporal patterns inherent in EEG.
 
 ## Getting Started
 
-Follow the steps below to reproduce the results presented in the paper.
+Follow the steps below to reproduce the results presented in the paper. 
 
 ### Environment Setup
 
@@ -41,6 +41,8 @@ This codebase was developed and tested with the following system configuration:
 - **GPU Driver Version**: 528.49
 - **CUDA Version**: 11.8
 - **cuDNN Version**: 8700
+- **Python**: 3.11.4
+- **PyTorch**: 2.0.1+cu118
 
 ## `cl_sster` Class Documentation
 
