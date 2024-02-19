@@ -18,6 +18,7 @@ First, reproduce the running environment using Anaconda:
 conda env create -n cl_sster_env -f cl_sster_env.yaml
 conda activate cl_sster_env
 pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2 --index-url https://download.pytorch.org/whl/cu118
+```
 
 ### Running the Notebooks
 
