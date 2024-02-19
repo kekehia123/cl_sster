@@ -1,10 +1,10 @@
 # Contrastive Learning for Shared Spatiotemporal EEG Representations (CL-SSTER)
 
-CL-SSTER aligns the neural representations from different subjects by minimizing the discrepancy of neural representations when the subjects receive the same stimuli. It regards a pair of samples from two different subjects when they receive the same stimuli as the positive sample pair, and samples corresponding to different stimuli as negative sample pairs.
-
 ## Introduction
 
-This implementation focuses on "Contrastive Learning of Shared Spatiotemporal EEG Representations Across Individuals for Naturalistic Neuroscience." It demonstrates how contrastive learning can be leveraged to align neural representations from different subjects, facilitating a more generalized understanding of neural responses to stimuli.
+CL-SSTER aligns the neural representations from different subjects by minimizing the discrepancy of neural representations when the subjects receive the same stimuli. It regards a pair of samples from two different subjects when they receive the same stimuli as the positive sample pair, and samples corresponding to different stimuli as negative sample pairs.
+
+This implementation focuses on reproduction of the paper "Contrastive Learning of Shared Spatiotemporal EEG Representations Across Individuals for Naturalistic Neuroscience." It demonstrates how contrastive learning can be leveraged to align neural representations from different subjects, facilitating a more generalized understanding of neural responses to stimuli.
 
 ## Getting Started
 
@@ -42,8 +42,6 @@ This codebase was developed and tested with the following system configuration:
 - **CUDA Version**: 11.8
 - **cuDNN Version**: 8700
 
-Ensure your system meets these specifications to replicate the results accurately.
-
 ## `cl_sster` Class Documentation
 
 The `cl_sster` class encapsulates the functionality for contrastive learning with EEG data. Below is an overview of its parameters, attributes, and methods.
@@ -56,10 +54,10 @@ The `cl_sster` class encapsulates the functionality for contrastive learning wit
 - `epochs_pretrain`: int (default: 50) - Number of pretraining epochs.
 - `timeFilterLen`: int (default: 30) - Length of temporal filters.
 - `avgPoolLen`: int (default: 15) - Kernel size for average pooling.
-- `device`: str (default: 'cuda') - Specifies the device for computation ('cuda' for GPU).
+- `device`: str (default: 'cuda') - Specifies the device for computation ('cuda' for GPU). Note: the cpu version has not been tested.
 - `gpu_index`: int (default: 0) - Index of the GPU to use.
 - `randSeed`: int (default: 7) - Seed for random number generation.
-- `data_type`: str (default: 'simulation') - Type of data to process.
+- `data_type`: str (default: 'simulation') - Type of data to process. It will create a subdirectory in 'results' with the name as 'data_type'.
 - `fs`: int (default: 128) - Sampling rate of the EEG data.
 
 ### Attributes
@@ -73,28 +71,108 @@ The `cl_sster` class encapsulates the functionality for contrastive learning wit
 Loads the EEG data and prepares it for model training.
 
 - **Parameters**:
-  - `data`: (array-like) The EEG dataset.
-  - `n_points`: (array-like) Number of data points per trial.
+  - `data`: array-like of shape `(n_subjects, n_timepoints, n_channels)` - The input EEG data.
+  - `n_points`: array-like of shape `(n_trials,)` - Number of data points per trial.
 - **Returns**:
   - The object itself, updated with the loaded data.
 
 #### `train_cl_sster`
 
-Trains the contrastive learning model using the loaded data.
+Trains the contrastive learning model using the loaded data. Save the trained parameters ('[fold_number]/checkpoint_*.pth.tar') and training history ('results.pkl') to self.save_dir.
 
 - **Parameters**: None.
 - **Returns**:
   - The object itself, updated with training outcomes.
 
-#### `get_hidden`
+### `get_hidden`
 
 Extracts hidden representations from the trained model.
 
 - **Parameters**:
-  - `fold`: (int) The cross-validation fold to use.
-  - `isNorm`: (bool, default: False) Whether to normalize the hidden representations.
+  - `fold`: int - Specifies the cross-validation fold to use.
+  - `isNorm`: bool (default: False) - Determines whether to normalize the hidden representations.
 - **Returns**:
-  - Hidden representations of the EEG data.
+  - `out`: array-like of shape `(n_subjects, n_latent_dimensions, n_timepoints_latent)` - The hidden representations of the data.
+  - `n_points_cum`: array-like of shape `(n_trials,)` - The cumulative sum of the number of points for each trial in the latent space, adjusted for the time filter length and average pooling.
+
+### `get_hidden_psd`
+
+Calculates the power spectral density (PSD) of the hidden representations.
+
+- **Parameters**:
+  - `fold`: int - Specifies the cross-validation fold to use.
+  - `inds_sel`: list of int - Indices of the selected dimensions in the hidden representations for PSD calculation.
+  - `isNorm`: bool (default: False) - Determines whether to normalize the hidden representations before PSD calculation.
+- **Returns**:
+  - `psd`: array-like of shape `(n_subjects, n_selected_dimensions, n_trials)` - The PSD of the selected dimensions of the hidden representations for each trial.
+
+### `calc_psd`
+
+Calculates the power spectral density of a signal.
+
+- **Parameters**:
+  - `signal`: Array-like of shape `(n_dimensions, n_timepoints)` - The input signal.
+- **Returns**:
+  - `psd`: float - The average power spectral density of the signal within the frequency range of interest (0.5 Hz to 40 Hz).
+
+### `get_hidden_nopool`
+
+Gets the hidden representations without applying average pooling.
+
+- **Parameters**:
+  - `fold`: int - Specifies the cross-validation fold to use.
+  - `inds_sel`: list of int - Indices of the selected dimensions in the hidden representations.
+  - `isNorm`: bool (default: False) - Determines whether to normalize the hidden representations.
+- **Returns**:
+  - `out`: array-like of shape `(n_subjects, n_latent_dimensions, n_timepoints_latent)` - The hidden representations without average pooling.
+  - `n_points_cum`: array-like of shape `(n_trials,)` - The cumulative sum of the number of points for each trial in the latent space, adjusted for the time filter length.
+
+### `check_nonzero_dims`
+
+Checks and returns the dimensions with non-zero variance across all trials and subjects.
+
+- **Parameters**:
+  - `self`: object.
+- **Returns**:
+  - `nonzero_dims`: Array-like of shape `(n_nonzero_dimensions)` - Indices of the dimensions with non-zero variance.
+
+### `calc_out_corr_dims`
+
+Calculates the correlation between dimensions of the output representations.
+
+- **Parameters**:
+  - `self`: object.
+- **Returns**:
+  - `out_corr_dims_mean`: array-like of shape `(n_nonzero_dimensions, n_nonzero_dimensions)` - The mean correlation matrix across subjects and trials.
+
+### `get_correspond_dims`
+
+Finds corresponding dimensions in the hidden representations of cross-validation model that match specified dimensions in the hidden representations of the model trained on all data based on correlation.
+
+- **Parameters**:
+  - `n_folds`: int - Number of folds in cross-validation.
+  - `out`: array-like of shape `(n_subjects, n_latent_dimensions, n_timepoints_latent)` - The hidden representations of the model trained on all data.
+  - `calc_dims`: list of int - The specified dimensions to match in the hidden representations (`out`).
+  - `isNorm`: bool (default: False) - Determines whether to normalize the hidden representations before finding corresponding dimensions.
+  - `isPool`: bool (default: True) - Indicates whether the hidden representations were obtained with pooling.
+- **Returns**:
+  - `correspondDims_fold`: array-like of shape `(n_folds, n_selected_dimensions)` - The corresponding dimensions found in each fold.
+  - `corr_mean_fold`: array-like of shape `(n_folds, n_selected_dimensions)` - The mean correlation of the corresponding dimensions across folds.
+
+### `get_correspond_dims_memEffi`
+
+A memory-efficient version of `get_correspond_dims`.
+
+- **Parameters**:
+  - `n_folds`: int - Number of folds in cross-validation.
+  - `out_sel`: aarray-like of shape `(n_subjects, n_selected_dimensions, n_timepoints_latent)` - A subset of the hidden representations for finding corresponding dimensions.
+  - `isNorm`: bool (default: False) - Determines whether to normalize the hidden representations before finding corresponding dimensions.
+  - `isPool`: bool (default: True) - Indicates whether the hidden representations were obtained with pooling.
+- **Returns**:
+  - correspondDims_fold: array-like of shape `(n_folds, n_selected_dimensions)` - The corresponding dimensions found in each fold.
+  - corr_mean_fold: array-like of shape `(n_folds, n_selected_dimensions)` - The mean correlation of the corresponding dimensions across folds.
+
+
 
 
 
